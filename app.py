@@ -117,7 +117,7 @@ def add_chien12():
     )
     db.session.add(c)
     db.session.commit()
-    return jsonify({'id': c.id, 'message': 'Chien 12 mois ajouté'}), 201
+    return jsonify({'message': 'Chien 12 mois ajouté', 'id': c.id}), 201
 
 @app.route('/api/chiens12/<int:cid>', methods=['PUT'])
 def update_chien12(cid):
@@ -128,19 +128,16 @@ def update_chien12(cid):
     c.race = data.get('race', c.race)
     c.refuge_id = data.get('refuge_id', c.refuge_id)
     db.session.commit()
-    return jsonify({'message': 'Chien 12 mois modifié'}), 200
+    return jsonify({'message': 'Chien 12 mois modifié'})
 
 @app.route('/api/chiens12/<int:cid>', methods=['DELETE'])
 def delete_chien12(cid):
     c = Chien12Mois.query.get_or_404(cid)
     db.session.delete(c)
     db.session.commit()
-    return jsonify({'message': 'Chien 12 mois supprimé'}), 200
+    return jsonify({'message': 'Chien 12 mois supprimé'})
 
-if __name__ == "__main__":
-    app.run(debug=True)
 
-    
 # ---------- ROUTES CHATS 12 MOIS ----------
 @app.route('/api/chats12', methods=['GET'])
 def get_chats12():
@@ -225,5 +222,8 @@ def delete_transfert(id):
 
 
 # ---------- LANCEMENT SERVEUR ----------
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+if __name__ == "__main__":
+    import os
+    port = int(os.environ.get("PORT", 5000))  # Render fournit PORT
+    # pas de reloader en prod (debug False)
+    app.run(host="0.0.0.0", port=port, debug=False)
