@@ -6,11 +6,11 @@ db = SQLAlchemy()
 class Refuge(db.Model):
     __tablename__ = "refuges"
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False)
-    responsable = db.Column(db.String(100))
+    nom = db.Column(db.String(120), nullable=False)
+    responsable = db.Column(db.String(120))
     telephone = db.Column(db.String(50))
-    adresse = db.Column(db.String(200))
-
+    adresse = db.Column(db.String(255))
+    
     chiens = db.relationship("Chien", backref="refuge", lazy=True)
 
     def to_dict(self):
@@ -27,12 +27,48 @@ class Refuge(db.Model):
 class Chien(db.Model):
     __tablename__ = "chiens"
     id = db.Column(db.Integer, primary_key=True)
-    nom = db.Column(db.String(100), nullable=False)
+    nom = db.Column(db.String(120), nullable=False)
     age = db.Column(db.Integer)
-    race = db.Column(db.String(100))
-    refuge_id = db.Column(db.Integer, db.ForeignKey("refuges.id"), nullable=True)
+    race = db.Column(db.String(120))
+    refuge_id = db.Column(db.Integer, db.ForeignKey("refuges.id"))
 
-    transferts = db.relationship("Transfert", backref="chien", lazy=True)
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nom": self.nom,
+            "age": self.age,
+            "race": self.race,
+            "refuge_id": self.refuge_id,
+        }
+
+
+# ✅ NOUVEAU : CHIENS 12 MOIS
+class Chien12Mois(db.Model):
+    __tablename__ = 'chien_12mois'
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(120), nullable=False)
+    age = db.Column(db.Integer)
+    race = db.Column(db.String(120))
+    refuge_id = db.Column(db.Integer, db.ForeignKey('refuges.id'))
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "nom": self.nom,
+            "age": self.age,
+            "race": self.race,
+            "refuge_id": self.refuge_id,
+        }
+
+
+# ✅ NOUVEAU : CHATS 12 MOIS
+class Chat12Mois(db.Model):
+    __tablename__ = "chats_12mois"
+    id = db.Column(db.Integer, primary_key=True)
+    nom = db.Column(db.String(120), nullable=False)
+    age = db.Column(db.Integer)
+    race = db.Column(db.String(120))
+    refuge_id = db.Column(db.Integer, db.ForeignKey("refuges.id"))
 
     def to_dict(self):
         return {
