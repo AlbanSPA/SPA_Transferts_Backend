@@ -1,8 +1,10 @@
+# models.py
 from flask_sqlalchemy import SQLAlchemy
+from datetime import date
 
 db = SQLAlchemy()
 
-# ---------- MODELE REFUGE ----------
+# ---------- REFUGE ----------
 class Refuge(db.Model):
     __tablename__ = "refuges"
     id = db.Column(db.Integer, primary_key=True)
@@ -10,8 +12,6 @@ class Refuge(db.Model):
     responsable = db.Column(db.String(120))
     telephone = db.Column(db.String(50))
     adresse = db.Column(db.String(255))
-    
-    chiens = db.relationship("Chien", backref="refuge", lazy=True)
 
     def to_dict(self):
         return {
@@ -22,8 +22,7 @@ class Refuge(db.Model):
             "adresse": self.adresse,
         }
 
-
-# ---------- MODELE CHIEN ----------
+# ---------- CHIEN ----------
 class Chien(db.Model):
     __tablename__ = "chiens"
     id = db.Column(db.Integer, primary_key=True)
@@ -41,15 +40,14 @@ class Chien(db.Model):
             "refuge_id": self.refuge_id,
         }
 
-
-# ✅ NOUVEAU : CHIENS 12 MOIS
+# ---------- CHIENS 12 MOIS ----------
 class Chien12Mois(db.Model):
-    __tablename__ = 'chien_12mois'
+    __tablename__ = "chien_12mois"
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(120), nullable=False)
     age = db.Column(db.Integer)
     race = db.Column(db.String(120))
-    refuge_id = db.Column(db.Integer, db.ForeignKey('refuges.id'))
+    refuge_id = db.Column(db.Integer, db.ForeignKey("refuges.id"))
 
     def to_dict(self):
         return {
@@ -60,8 +58,7 @@ class Chien12Mois(db.Model):
             "refuge_id": self.refuge_id,
         }
 
-
-# ✅ NOUVEAU : CHATS 12 MOIS
+# ---------- CHATS 12 MOIS ----------
 class Chat12Mois(db.Model):
     __tablename__ = "chats_12mois"
     id = db.Column(db.Integer, primary_key=True)
@@ -79,23 +76,43 @@ class Chat12Mois(db.Model):
             "refuge_id": self.refuge_id,
         }
 
-
-# ---------- MODELE TRANSFERT ----------
+# ---------- TRANSFERT ----------
 class Transfert(db.Model):
     __tablename__ = "transferts"
+
     id = db.Column(db.Integer, primary_key=True)
-    chien_id = db.Column(db.Integer, db.ForeignKey("chiens.id"), nullable=False)
+
+    # Schéma unifié
+    animal_type = db.Column(db.String(20), nullable=True)   # "chien" | "chien12" | "chat12"
+    animal_id   = db.Column(db.Integer, nullable=True)
+
+    # Compat héritée
+    chien_id = db.Column(db.Integer, db.ForeignKey("chiens.id"), nullable=True)
+
     refuge_depart_id = db.Column(db.Integer, db.ForeignKey("refuges.id"), nullable=False)
     refuge_arrivee_id = db.Column(db.Integer, db.ForeignKey("refuges.id"), nullable=False)
     date_transfert = db.Column(db.Date)
     statut = db.Column(db.String(50), default="En attente")
 
     def to_dict(self):
+        # Compat descendante pour l’animal
+        atype = self.animal_type or ("chien" if self.chien_id else None)
+        aid   = self.animal_id   or self.chien_id
+
+        # Date : tolérance str/date
+        dt = self.date_transfert
+        if isinstance(dt, str):
+            date_out = dt
+        else:
+            date_out = dt.isoformat() if dt else None
+
         return {
             "id": self.id,
-            "chien_id": self.chien_id,
+            "animal_type": atype,
+            "animal_id": aid,
+            "chien_id": self.chien_id,  # compat front
             "refuge_depart_id": self.refuge_depart_id,
             "refuge_arrivee_id": self.refuge_arrivee_id,
-            "date_transfert": self.date_transfert.isoformat() if self.date_transfert else None,
+            "date_transfert": date_out,
             "statut": self.statut,
         }
